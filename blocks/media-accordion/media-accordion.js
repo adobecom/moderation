@@ -2,7 +2,7 @@ import { LIBS } from '../../scripts/scripts.js';
 
 const { createTag, getConfig } = await import(`${LIBS}/utils/utils.js`);
 const { decorateButtons } = await import(`${LIBS}/utils/decorate.js`);
-const { processTrackingLabels } = await import(`${LIBS}/utils/attributes.js`);
+const { processTrackingLabels } = await import(`${LIBS}/martech/attributes.js`);
 const { replaceKey } = await import(`${LIBS}/features/placeholders.js`);
 
 const chevronIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="currentcolor" fill-rule="evenodd" clip-rule="evenodd" d="M16.0001 12C16.0002 12.1745 15.9657 12.3474 15.8988 12.5086C15.8319 12.6698 15.7338 12.8162 15.6101 12.9393L10.2881 18.2593C10.1704 18.3991 10.0252 18.5131 9.8616 18.5944C9.69798 18.6757 9.51939 18.7225 9.33693 18.7319C9.15447 18.7413 8.97203 18.713 8.80092 18.649C8.62982 18.5849 8.4737 18.4864 8.34227 18.3595C8.21083 18.2326 8.10688 18.08 8.03686 17.9113C7.96684 17.7425 7.93225 17.5612 7.93524 17.3785C7.93822 17.1958 7.97872 17.0157 8.05422 16.8493C8.12971 16.683 8.2386 16.5339 8.37411 16.4113L8.40678 16.3787L12.7874 12L8.40611 7.62C8.17954 7.36922 8.05666 7.04176 8.06232 6.70383C8.06798 6.36591 8.20175 6.04274 8.43659 5.79969C8.67143 5.55664 8.98981 5.41183 9.32733 5.39457C9.66486 5.3773 9.99636 5.48885 10.2548 5.70667L10.2874 5.73933L15.6094 11.0593C15.7334 11.1826 15.8317 11.3292 15.8987 11.4906C15.9658 11.6521 16.0002 11.8252 16.0001 12Z"/></svg>';
