@@ -23,6 +23,16 @@ div.accordion:not(.descr-list) {
   line-height: var(--type-body-s-lh);
 }
 
+.accordion .descr-details .descr-details-media-container {
+  display: flex;
+  padding: var(--spacing-s);
+}
+
+.accordion .descr-details .descr-details-media-container img {
+  max-height: 300px;
+  width: auto;
+}
+
 .accordion-expand-all {
   display: flex;
   flex-wrap: wrap;

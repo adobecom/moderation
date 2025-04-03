@@ -209,6 +209,28 @@ async function createExpandAllContainer(accordionItems, isEditorial, mediaEl) {
   return container;
 }
 
+function createMediaContainers(el) {
+  const containers = el.querySelectorAll('.descr-details > div');
+  containers.forEach((container) => {
+    const children = Array.from(container.children);
+    container.innerHTML = '';
+    let mediaContainer;
+    for (let i = 0; i < children.length; i += 1) {
+      const picture = children[i].querySelector('picture');
+      if (picture && !mediaContainer) {
+        mediaContainer = createTag('div', { class: 'descr-details-media-container' });
+        container.append(mediaContainer);
+      }
+      if (picture && mediaContainer) {
+        mediaContainer.append(picture);
+      } else {
+        mediaContainer = null;
+        container.append(children[i]);
+      }
+    }
+  });
+}
+
 export default async function init(el) {
   const id = getUniqueId(el);
   const accordion = createTag('div', { class: 'descr-list accordion', id: `accordion-${id}`, role: 'presentation' });
@@ -253,4 +275,5 @@ export default async function init(el) {
     const expandAllContainer = await createExpandAllContainer(items, isEditorial, accordionMedia);
     el.prepend(expandAllContainer);
   }
+  createMediaContainers(el);
 }
