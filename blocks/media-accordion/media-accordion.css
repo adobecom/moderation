@@ -25,6 +25,7 @@ div.accordion:not(.descr-list) {
 
 .accordion .descr-details .descr-details-media-container {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: var(--spacing-s);
 }
@@ -268,6 +269,10 @@ div.media-p {
 }
 
 @media screen and (min-width: 1200px) {
+  .accordion .descr-details .descr-details-media-container {
+    flex-direction: row;
+  }
+
   .editorial {
     display: flex;
     gap: 54px;
