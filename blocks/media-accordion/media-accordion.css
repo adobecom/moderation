@@ -25,6 +25,7 @@ div.accordion:not(.descr-list) {
 
 .accordion .descr-details .descr-details-media-container {
   display: flex;
+  gap: 10px;
   padding: var(--spacing-s);
 }
 
