@@ -16,7 +16,7 @@ export const [setLibs, getLibs] = (() => {
     (prodLibs, location) => {
       libs = (() => {
         const { hostname, search } = location || window.location;
-        if (!(hostname.includes('.aem.') || hostname.includes('local'))) return prodLibs;
+        if (!['.hlx.', '.aem.', '.stage.', 'local'].some((i) => hostname.includes(i))) return '/libs';
         const branch = new URLSearchParams(search).get('milolibs') || 'main';
         if (branch === 'local') return 'http://localhost:6456/libs';
         return branch.includes('--') ? `https://${branch}.aem.live/libs` : `https://${branch}--milo--adobecom.aem.live/libs`;
@@ -25,7 +25,6 @@ export const [setLibs, getLibs] = (() => {
     }, () => libs,
   ];
 })();
-
 
 function decorateArea(area = document) {
   const eagerLoad = (parent, selector) => {
@@ -39,7 +38,7 @@ function decorateArea(area = document) {
       eagerLoad(document, 'img');
       return;
     }
-  
+
     // First image of first row
     eagerLoad(marquee, 'div:first-child img');
     // Last image of last column of last row
@@ -51,7 +50,7 @@ function decorateArea(area = document) {
 const STYLES = '';
 
 // Use 'https://milo.adobe.com/libs' if you cannot map '/libs' to milo's origin.
-const LIBS = '/libs';
+export const LIBS = setLibs(window.location);
 
 // Add any config options.
 const CONFIG = {
