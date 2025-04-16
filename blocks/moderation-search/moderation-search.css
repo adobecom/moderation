@@ -11,6 +11,25 @@ main .moderation-search .moderation-search-input {
   box-sizing: border-box;
 }
 
+main .moderation-search .moderation-search-input-container {
+  position: relative;
+}
+
+main .moderation-search .moderation-search-input-container .moderation-search-input-icon {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  fill: #646464;
+  transition: fill 130ms ease-in-out;
+}
+
+main .moderation-search .moderation-search-input-container:hover .moderation-search-input-icon {
+  fill: #2c2c2c;
+}
+
 main .moderation-search .moderation-search-results-count {
   display: none;
   text-align: center;
