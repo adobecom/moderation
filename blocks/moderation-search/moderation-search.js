@@ -1,6 +1,7 @@
 import { LIBS } from '../../scripts/scripts.js';
 
 const { createTag } = await import(`${LIBS}/utils/utils.js`);
+const { buildArticleCard } = await import(`${LIBS}/blocks/article-feed/article-helpers.js`);
 
 async function fetchArticles() {
   let articles;
@@ -23,7 +24,7 @@ function buildSearch(block, placeholderText) {
   block.append(searchInput);
   const resultsCountElement = createTag('span', { class: 'moderation-search-results-count' });
   block.append(resultsCountElement);
-  const resultsContainer = createTag('div', { class: 'moderation-search-results' });
+  const resultsContainer = createTag('div', { class: 'moderation-search-results-container' });
   block.append(resultsContainer);
 }
 
@@ -37,12 +38,14 @@ function debounce(fn, delay) {
 
 function initiateSearch(block, articles, resultsText, noResultsText) {
   const searchInput = block.querySelector('.moderation-search-input');
+  const resultsContainer = block.querySelector('.moderation-search-results-container');
   const resultsCountElement = block.querySelector('.moderation-search-results-count');
 
   searchInput.addEventListener('input', debounce(() => {
     const searchTerm = searchInput.value.trim().toLowerCase();
+    resultsContainer.innerHTML = '';
     if (searchTerm) {
-      let results = [];
+      const results = [];
       articles.forEach((article) => {
         if (
           article.title.toLowerCase().includes(searchTerm)
@@ -51,19 +54,24 @@ function initiateSearch(block, articles, resultsText, noResultsText) {
           || article.tags.toLowerCase().includes(searchTerm)
         ) {
           results.push(article);
+          const articleElement = buildArticleCard(article);
+          resultsContainer.append(articleElement);
         }
       });
 
       if (results.length) {
         resultsCountElement.textContent = resultsText.replace('[count]', results.length);
         resultsCountElement.classList.add('active');
+        resultsContainer.classList.add('active');
       } else {
         resultsCountElement.textContent = noResultsText;
         resultsCountElement.classList.add('active');
+        resultsContainer.classList.remove('active');
       }
     } else {
       resultsCountElement.textContent = '';
       resultsCountElement.classList.remove('active');
+      resultsContainer.classList.remove('active');
     }
   }, 300));
 }

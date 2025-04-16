@@ -8,6 +8,7 @@ main .moderation-search .moderation-search-input {
   padding: 6px 30px;
   font-size: 14px;
   line-height: 30px;
+  box-sizing: border-box;
 }
 
 main .moderation-search .moderation-search-results-count {
@@ -17,5 +18,41 @@ main .moderation-search .moderation-search-results-count {
 
 main .moderation-search .moderation-search-results-count.active {
   display: block;
-  padding: var(--spacing-m);
+  padding: var(--spacing-m) 0;
+}
+
+main .moderation-search .moderation-search-results-container {
+  display: none;
+  margin: 0 auto;
+  padding: var(--spacing-m) 0;
+}
+
+main .moderation-search .moderation-search-results-container.active {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+
+main .moderation-search .moderation-search-results-container .article-card {
+  margin: 0;
+  width: 100%;
+}
+
+main .moderation-search .moderation-search-results-container .article-card .article-card-body {
+  padding: 1rem;
+}
+
+
+main .moderation-search .moderation-search-results-container .article-card .article-card-body h3 {
+  min-height: auto;
+}
+
+main .moderation-search .moderation-search-results-container .article-card .article-card-description {
+  font-size: 14px;
+}
+
+@media (max-width: 860px) {
+  main .moderation-search .moderation-search-results-container.active {
+    grid-template-columns: 1fr 1fr;
+  }
 }
