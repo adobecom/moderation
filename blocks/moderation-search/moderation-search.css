@@ -1,0 +1,21 @@
+main .moderation-search h1 {
+  text-align: center;
+}
+
+main .moderation-search .moderation-search-input {
+  border-radius: 4px;
+  width: 100%;
+  padding: 6px 30px;
+  font-size: 14px;
+  line-height: 30px;
+}
+
+main .moderation-search .moderation-search-results-count {
+  display: none;
+  text-align: center;
+}
+
+main .moderation-search .moderation-search-results-count.active {
+  display: block;
+  padding: var(--spacing-m);
+}
