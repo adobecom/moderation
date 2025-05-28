@@ -210,26 +210,53 @@ async function createExpandAllContainer(accordionItems, isEditorial, mediaEl) {
 }
 
 function createMediaContainers(el) {
-  const containers = el.querySelectorAll('.descr-details > div');
-  containers.forEach((container) => {
-    const children = Array.from(container.children);
-    container.innerHTML = '';
-    let mediaContainer;
-    for (let i = 0; i < children.length; i += 1) {
-      const picture = children[i].querySelector('picture');
-      if (picture && !mediaContainer) {
-        mediaContainer = createTag('div', { class: 'descr-details-media-container' });
-        container.append(mediaContainer);
-      }
-      if (picture && mediaContainer) {
-        mediaContainer.append(picture);
+  el.querySelectorAll('.descr-details > div').forEach(container => {
+    let wrapper = null;
+    Array.from(container.childNodes).forEach(node => {
+      const isPic = node.nodeType === 1 && node.matches('picture');
+      const hasPic = node.nodeType === 1 && node.querySelector(':scope > picture');
+      if (isPic || hasPic) {
+        if (!wrapper) {
+          wrapper = createTag('div', { class: 'descr-details-media-container' });
+          container.insertBefore(wrapper, node);
+        }
+        if (isPic) wrapper.appendChild(node);
+        else node.querySelectorAll('picture').forEach(pic => wrapper.appendChild(pic));
+      } else wrapper = null;
+    });
+    container.querySelectorAll('table').forEach(table => {
+      const rows = table.querySelectorAll('tr'),
+            r1 = rows[0], r2 = rows[1], r3 = rows[2];
+      const rowC = createTag('div', { class: 'descr-details-gray-row' });
+      const capC = createTag('div', { class: 'descr-details-gray-caption' });
+      const headers = Array.from(r1.querySelectorAll('td,th'));
+      Array.from(r2.querySelectorAll('td')).forEach((td, i) => {
+        const txt = headers[i]?.textContent || '';
+        const cls = txt.includes('Y') ? 'checkmark' : txt.includes('X') ? 'crossmark' : '';
+        const cell = createTag('div', { class: `descr-details-gray-container${cls ? ' ' + cls : ''}` });
+        const ps = td.querySelectorAll('p');
+        if (ps.length > 1) {
+          cell.classList.add('multi');
+          ps.forEach(p => p.querySelectorAll('picture').forEach(pic => cell.appendChild(pic)));
+        } else {
+          td.querySelectorAll('picture').forEach(pic => cell.appendChild(pic));
+        }
+        rowC.appendChild(cell);
+      });
+      if (r3) {
+        Array.from(r3.querySelectorAll('td')).forEach(td => {
+          const c = createTag('div', { class: 'descr-details-gray-caption-cell' });
+          while (td.firstChild) c.appendChild(td.firstChild);
+          capC.appendChild(c);
+        });
+        table.replaceWith(rowC, capC);
       } else {
-        mediaContainer = null;
-        container.append(children[i]);
+        table.replaceWith(rowC);
       }
-    }
+    });
   });
 }
+
 
 export default async function init(el) {
   const id = getUniqueId(el);
