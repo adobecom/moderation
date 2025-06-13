@@ -210,26 +210,83 @@ async function createExpandAllContainer(accordionItems, isEditorial, mediaEl) {
 }
 
 function createMediaContainers(el) {
-  const containers = el.querySelectorAll('.descr-details > div');
-  containers.forEach((container) => {
-    const children = Array.from(container.children);
-    container.innerHTML = '';
-    let mediaContainer;
-    for (let i = 0; i < children.length; i += 1) {
-      const picture = children[i].querySelector('picture');
-      if (picture && !mediaContainer) {
-        mediaContainer = createTag('div', { class: 'descr-details-media-container' });
-        container.append(mediaContainer);
-      }
-      if (picture && mediaContainer) {
-        mediaContainer.append(picture);
+  el.querySelectorAll('.descr-details > div').forEach(container => {
+    let wrapper = null;
+    Array.from(container.childNodes).forEach(node => {
+      const isPic  = node.nodeType === 1 && node.matches('picture');
+      const hasPic = node.nodeType === 1 && node.querySelector(':scope > picture');
+      if (isPic || hasPic) {
+        if (!wrapper) {
+          wrapper = createTag('div', { class: 'descr-details-media-container' });
+          container.insertBefore(wrapper, node);
+        }
+        if (isPic) wrapper.appendChild(node);
+        else node.querySelectorAll('picture').forEach(pic => wrapper.appendChild(pic));
       } else {
-        mediaContainer = null;
-        container.append(children[i]);
+        wrapper = null;
       }
-    }
+    });
+
+    container.querySelectorAll('table').forEach(table => {
+      const rowsArr  = Array.from(table.querySelectorAll('tr'));
+      const headers  = Array.from(rowsArr[0].querySelectorAll('td,th'));
+      const bodyRows = rowsArr.slice(1);
+      const output   = [];
+      bodyRows.forEach(row => {
+        if (row.querySelector('picture, .video-holder, :scope > video, p > video')) {
+          const rowC = createTag('div', { class: 'descr-details-gray-row' });
+          row.querySelectorAll('td').forEach((td, i) => {
+            const txt   = headers[i]?.textContent || '';
+            let cls = '';
+            if (txt.includes('Y')) {
+              cls = 'checkmark';
+            } else if (txt.includes('X')) {
+              cls = 'crossmark';
+            } else if (txt.includes('?')) {
+              cls = 'questionmark';
+            } else if (txt.includes('!')) {
+              cls = 'exclammark';
+            } else if (txt.includes('i')) {
+              cls = 'infomark';
+            }
+            const cell  = createTag('div', {
+              class: `descr-details-gray-container${cls ? ' ' + cls : ''}`
+            });
+            const ps = td.querySelectorAll('p');
+            if (td.querySelectorAll('picture, .video-holder, :scope > video, p > video').length > 1) {
+              if (ps.length <= 1 ) cell.classList.add('descr-details-row');
+            } else {
+              cell.classList.add('descr-details-single');
+            }
+            const multi = ps.length > 1 && Array.from(ps).some(p => p.querySelectorAll('picture, .video-holder, :scope > video, p > video').length > 1);
+            if (multi) {
+              cell.classList.add('multi');
+              ps.forEach(p => p.querySelectorAll('picture, .video-holder, :scope > video, p > video').forEach(pic => cell.appendChild(pic)));
+            } else {
+              td.querySelectorAll('picture, .video-holder, :scope > video, p > video').forEach(pic => cell.appendChild(pic));
+            }
+            rowC.appendChild(cell);
+          });
+          output.push(rowC);
+        } else {
+          const capC = createTag('div', { class: 'descr-details-gray-caption' });
+          row.querySelectorAll('td').forEach(td => {
+            const c = createTag('div', { class: 'descr-details-gray-caption-cell' });
+            while (td.firstChild) c.appendChild(td.firstChild);
+            capC.appendChild(c);
+          });
+          output.push(capC);
+        }
+      });
+      const wrapperDiv = createTag('div', { class: 'checkmark-crossmarks' });
+      output.forEach(node => wrapperDiv.appendChild(node));
+      table.replaceWith(wrapperDiv);
+    });
   });
 }
+
+
+
 
 export default async function init(el) {
   const id = getUniqueId(el);
