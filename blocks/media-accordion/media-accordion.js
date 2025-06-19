@@ -210,24 +210,136 @@ async function createExpandAllContainer(accordionItems, isEditorial, mediaEl) {
 }
 
 function createMediaContainers(el) {
-  const containers = el.querySelectorAll('.descr-details > div');
-  containers.forEach((container) => {
-    const children = Array.from(container.children);
-    container.innerHTML = '';
-    let mediaContainer;
-    for (let i = 0; i < children.length; i += 1) {
-      const picture = children[i].querySelector('picture');
-      if (picture && !mediaContainer) {
-        mediaContainer = createTag('div', { class: 'descr-details-media-container' });
-        container.append(mediaContainer);
-      }
-      if (picture && mediaContainer) {
-        mediaContainer.append(picture);
+  el.querySelectorAll('.descr-details > div').forEach(container => {
+    let wrapper = null;
+    Array.from(container.childNodes).forEach(node => {
+      const isPic  = node.nodeType === 1 && node.matches('picture');
+      const hasPic = node.nodeType === 1 && node.querySelector(':scope > picture');
+      if (isPic || hasPic) {
+        if (!wrapper) {
+          wrapper = createTag('div', { class: 'descr-details-media-container' });
+          container.insertBefore(wrapper, node);
+        }
+        if (isPic) wrapper.appendChild(node);
+        else node.querySelectorAll('picture').forEach(pic => wrapper.appendChild(pic));
       } else {
-        mediaContainer = null;
-        container.append(children[i]);
+        wrapper = null;
       }
-    }
+    });
+
+    container.querySelectorAll('table').forEach(table => {
+      const rowsArr  = Array.from(table.querySelectorAll('tr'));
+      const headers  = Array.from(rowsArr[0].querySelectorAll('td,th'));
+      const bodyRows = rowsArr.slice(1);
+      const output   = [];
+      bodyRows.forEach(row => {
+        if (row.querySelector('picture, .video-holder, video')) {
+          const rowC = createTag('div', { class: 'descr-details-gray-row' });
+          row.querySelectorAll('td').forEach((td, i) => {
+            const txt   = headers[i]?.textContent || '';
+            let cls = '';
+            if (txt.includes('Y')) {
+              cls = 'checkmark';
+            } else if (txt.includes('X')) {
+              cls = 'crossmark';
+            } else if (txt.includes('?')) {
+              cls = 'questionmark';
+            } else if (txt.includes('!')) {
+              cls = 'exclammark';
+            } else if (txt.includes('i')) {
+              cls = 'infomark';
+            }
+            const paragraphs = Array.from(td.querySelectorAll('p'));
+            const directMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video'));
+            const paragraphsWithMedia = paragraphs.filter(p => 
+              p.querySelector('picture, .video-holder, video')
+            );
+            let layoutClass = 'descr-details-vertical';
+            if (paragraphsWithMedia.length > 1) {
+              const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some(p => {
+                const pictures = p.querySelectorAll('picture').length;
+                const videos = p.querySelectorAll('video').length;
+                const totalMedia = pictures + videos;
+                return totalMedia > 1;
+              });
+              layoutClass = hasMultipleMediaInAnyParagraph ? 'descr-details-grid' : 'descr-details-vertical';
+            } else if (paragraphsWithMedia.length === 1) {
+              const paragraph = paragraphsWithMedia[0];
+              const pictures = paragraph.querySelectorAll('picture').length;
+              const videos = paragraph.querySelectorAll('video').length;
+              const totalMedia = pictures + videos;
+              layoutClass = totalMedia > 1 ? 'descr-details-horizontal' : 'descr-details-vertical';
+            } else if (directMedia.length > 1) {
+              layoutClass = 'descr-details-horizontal';
+            }
+            if (cls === 'questionmark') {
+              layoutClass = 'descr-details-horizontal';
+            } else if (cls === 'crossmark' && paragraphsWithMedia.length > 1) {
+              const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some(p => 
+                p.querySelectorAll('picture, .video-holder, video').length > 1
+              );
+              if (hasMultipleMediaInAnyParagraph) {
+                layoutClass = 'descr-details-grid';
+              }
+            }
+            const cell = createTag('div', {
+              class: `descr-details-gray-container${cls ? ' ' + cls : ''} ${layoutClass}`
+            });
+            const allMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video, :scope > p > picture, :scope > p > .video-holder, :scope > p > video'));
+            allMedia.forEach(media => {
+              if (media.tagName === 'VIDEO') {
+                if (media.getAttribute('data-video-source') && !media.querySelector('source')) {
+                  const source = createTag('source', {
+                    src: media.getAttribute('data-video-source'),
+                    type: 'video/mp4'
+                  });
+                  media.appendChild(source);
+                }
+                if (!media.closest('.video-holder')) {
+                  const videoHolder = createTag('div', { class: 'video-holder' });
+                  videoHolder.appendChild(media);
+                  cell.appendChild(videoHolder);
+                } else {
+                  cell.appendChild(media);
+                }
+              } else if (media.classList.contains('video-holder')) {
+                const videosInHolder = media.querySelectorAll('video');
+                videosInHolder.forEach(video => {
+                  if (video.getAttribute('data-video-source') && !video.querySelector('source')) {
+                    const source = createTag('source', {
+                      src: video.getAttribute('data-video-source'),
+                      type: 'video/mp4'
+                    });
+                    video.appendChild(source);
+                  }
+                });
+                cell.appendChild(media);
+              } else if (media.matches('picture')) {
+                cell.appendChild(media);
+              }
+            });
+            Array.from(td.querySelectorAll('p')).forEach(p => {
+              if (!p.textContent.trim() && !p.children.length) {
+                p.remove();
+              }
+            });
+            rowC.appendChild(cell);
+          });
+          output.push(rowC);
+        } else {
+          const capC = createTag('div', { class: 'descr-details-gray-caption' });
+          row.querySelectorAll('td').forEach(td => {
+            const c = createTag('div', { class: 'descr-details-gray-caption-cell' });
+            while (td.firstChild) c.appendChild(td.firstChild);
+            capC.appendChild(c);
+          });
+          output.push(capC);
+        }
+      });
+      const wrapperDiv = createTag('div', { class: 'checkmark-crossmarks' });
+      output.forEach(node => wrapperDiv.appendChild(node));
+      table.replaceWith(wrapperDiv);
+    });
   });
 }
 
