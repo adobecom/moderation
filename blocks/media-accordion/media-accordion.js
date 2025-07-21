@@ -13,12 +13,10 @@ const mediaCollection = {};
 function processColoredText(input) {
   if (typeof input !== 'string' && !input?.innerHTML) return input;
   
-  const colors = { red: '#EA3829', green: '#15A46E', yellow: '#FFC857', blue: '#31A8FF' };
-  const bbCode = (text) => text.replace(/\[(\w+)\](.*?)\[\/\1\]/g, (_match, color, content) => {
-    const styleColor = colors[color] || color;
-    return `<span style="color: ${styleColor};">${content}</span>`;
-
+  const bbCode = (text) => text.replace(/\[(red|blue|yellow|green)\](.*?)\[\/\1\]/g, (_match, color, content) => {
+    return `<span class="text-${color}">${content}</span>`;
   });
+  
   if (typeof input === 'string') return bbCode(input);
 
   input.innerHTML = bbCode(input.innerHTML);
