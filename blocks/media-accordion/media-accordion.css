@@ -472,3 +472,8 @@ div.media-p {
     justify-self: center;
   }
 }
+
+.accordion .text-red { color: #EA3829; }
+.accordion .text-blue { color: #31A8FF; }
+.accordion .text-yellow { color: #FFC857; }
+.accordion .text-green { color: #15A46E; }
