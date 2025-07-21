@@ -10,6 +10,21 @@ const closeIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" x
 const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [] };
 const mediaCollection = {};
 
+function processColoredText(input) {
+  if (typeof input !== 'string' && !input?.innerHTML) return input;
+  
+  const colors = { red: '#EA3829', green: '#15A46E', yellow: '#FFC857', blue: '#31A8FF' };
+  const bbCode = (text) => text.replace(/\[(\w+)\](.*?)\[\/\1\]/g, (_match, color, content) => {
+    const styleColor = colors[color] || color;
+    return `<span style="color: ${styleColor};">${content}</span>`;
+
+  });
+  if (typeof input === 'string') return bbCode(input);
+
+  input.innerHTML = bbCode(input.innerHTML);
+  return input;
+}
+
 function setSEO(questions) {
   faq.mainEntity.push(questions.map(({ name, text }) => (
     { '@type': 'Question', name, acceptedAnswer: { text, '@type': 'Answer' } })));
@@ -249,6 +264,8 @@ function createMediaContainers(el) {
             } else if (txt.includes('i')) {
               cls = 'infomark';
             }
+            const hasMedia = td.querySelector('picture, .video-holder, video');
+            if (hasMedia) {
             const paragraphs = Array.from(td.querySelectorAll('p'));
             const directMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video'));
             const paragraphsWithMedia = paragraphs.filter(p => 
@@ -318,13 +335,24 @@ function createMediaContainers(el) {
                 cell.appendChild(media);
               }
             });
-            Array.from(td.querySelectorAll('p')).forEach(p => {
-              if (!p.textContent.trim() && !p.children.length) {
-                p.remove();
-              }
+            const textNodes = Array.from(td.childNodes).filter(node => 
+              node.nodeType === Node.TEXT_NODE && node.textContent.trim()
+            );
+            const textParagraphs = Array.from(td.querySelectorAll('p')).filter(p => 
+              p.textContent.trim() && !p.querySelector('picture, .video-holder, video')
+            );
+            textNodes.forEach(textNode => {
+              if (textNode.textContent.trim()) cell.appendChild(createTag('p', {}, textNode.textContent));
             });
+            textParagraphs.forEach(p => cell.appendChild(p.cloneNode(true)));
             rowC.appendChild(cell);
+            } else {
+            const cell = createTag('div', { class: `descr-details-text-only${cls ? ' ' + cls : ''}` });
+            while (td.firstChild) cell.appendChild(td.firstChild);
+            rowC.appendChild(cell);
+            }
           });
+          processColoredText(rowC);
           output.push(rowC);
         } else {
           const capC = createTag('div', { class: 'descr-details-gray-caption' });
@@ -333,6 +361,7 @@ function createMediaContainers(el) {
             while (td.firstChild) c.appendChild(td.firstChild);
             capC.appendChild(c);
           });
+          processColoredText(capC);
           output.push(capC);
         }
       });
@@ -355,7 +384,7 @@ export default async function init(el) {
   if (isEditorial) {
     const editorialMedia = el.querySelectorAll(':scope > div:nth-child(3n)');
     [...editorialMedia].map(
-      (media, idx, collection) => populateMedia(accordionMedia, id, idx, collection),
+      (_media, idx, collection) => populateMedia(accordionMedia, id, idx, collection),
     );
   }
 

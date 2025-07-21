@@ -21,8 +21,15 @@ div.accordion:not(.descr-list) {
   padding: var(--spacing-xs);
   padding-top: var(--spacing-l);
   padding-bottom: var(--spacing-l);
+}
+
+.accordion .descr-details .descr-details-gray-caption {
   font-size: var(--type-body-s-size);
   line-height: var(--type-body-s-lh);
+}
+
+.accordion .descr-details .descr-details-text-only {
+  align-self: center;
 }
 
 .accordion .descr-details .descr-details-media-container {
