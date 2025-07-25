@@ -267,22 +267,24 @@ function createMediaContainers(el) {
             const paragraphs = Array.from(td.querySelectorAll('p'));
             const directMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video'));
             const paragraphsWithMedia = paragraphs.filter(p => 
-              p.querySelector('picture, .video-holder, video')
+              p.querySelector('picture, .video-holder, video:not(.video-holder video)')
             );
             let layoutClass = 'descr-details-vertical';
             if (paragraphsWithMedia.length > 1) {
               const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some(p => {
                 const pictures = p.querySelectorAll('picture').length;
-                const videos = p.querySelectorAll('video').length;
-                const totalMedia = pictures + videos;
+                const videoHolders = p.querySelectorAll('.video-holder').length;
+                const standaloneVideos = p.querySelectorAll('video:not(.video-holder video)').length;
+                const totalMedia = pictures + videoHolders + standaloneVideos;
                 return totalMedia > 1;
               });
               layoutClass = hasMultipleMediaInAnyParagraph ? 'descr-details-grid' : 'descr-details-vertical';
             } else if (paragraphsWithMedia.length === 1) {
               const paragraph = paragraphsWithMedia[0];
               const pictures = paragraph.querySelectorAll('picture').length;
-              const videos = paragraph.querySelectorAll('video').length;
-              const totalMedia = pictures + videos;
+              const videoHolders = paragraph.querySelectorAll('.video-holder').length;
+              const standaloneVideos = paragraph.querySelectorAll('video:not(.video-holder video)').length;
+              const totalMedia = pictures + videoHolders + standaloneVideos;
               layoutClass = totalMedia > 1 ? 'descr-details-horizontal' : 'descr-details-vertical';
             } else if (directMedia.length > 1) {
               layoutClass = 'descr-details-horizontal';
@@ -291,7 +293,7 @@ function createMediaContainers(el) {
               layoutClass = 'descr-details-horizontal';
             } else if (cls === 'crossmark' && paragraphsWithMedia.length > 1) {
               const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some(p => 
-                p.querySelectorAll('picture, .video-holder, video').length > 1
+                p.querySelectorAll('picture, .video-holder, video:not(.video-holder video)').length > 1
               );
               if (hasMultipleMediaInAnyParagraph) {
                 layoutClass = 'descr-details-grid';
