@@ -1,2 +1,4 @@
-mountpoints:
-  /: https://adobe.sharepoint.com/sites/moderation/Shared%20Documents/guidelines
+moutpoints:
+  /:
+    url: https://adobe.sharepoint.com/sites/moderation/Shared%20Documents/guidelines
+    tenantId: common
