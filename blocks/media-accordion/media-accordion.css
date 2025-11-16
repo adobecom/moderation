@@ -418,7 +418,7 @@ div.media-p {
 }
 
 .descr-details-gray-container picture,
-.descr-details-gray-container .video-holder {
+.descr-details-gray-container .descr-details-video {
   width: max-content;
   max-width: 100%;
   flex-shrink: 1;
