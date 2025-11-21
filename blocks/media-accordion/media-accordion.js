@@ -1,7 +1,7 @@
 import { LIBS } from '../../scripts/scripts.js';
 
 const { createTag, getConfig } = await import(`${LIBS}/utils/utils.js`);
-const { decorateButtons } = await import(`${LIBS}/utils/decorate.js`);
+const { decorateButtons, applyAccessibilityEvents } = await import(`${LIBS}/utils/decorate.js`);
 const { processTrackingLabels } = await import(`${LIBS}/martech/attributes.js`);
 const { replaceKey } = await import(`${LIBS}/features/placeholders.js`);
 
@@ -11,7 +11,8 @@ const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: 
 const mediaCollection = {};
 
 function processColoredText(input) {
-  if (typeof input !== 'string' && !input?.innerHTML) return input;
+  if ((typeof input !== 'string' && !input?.innerHTML) || 
+      !/\[(red|blue|yellow|green)\]/.test(typeof input === 'string' ? input : input.innerHTML)) return input;
   
   const bbCode = (text) => text.replace(/\[(red|blue|yellow|green)\](.*?)\[\/\1\]/g, (_match, color, content) => {
     return `<span class="text-${color}">${content}</span>`;
@@ -305,6 +306,7 @@ function createMediaContainers(el) {
             const allMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video, :scope > p > picture, :scope > p > .video-holder, :scope > p > video'));
             allMedia.forEach(media => {
               if (media.tagName === 'VIDEO') {
+                const videoHolder = media.closest('.video-holder');
                 if (media.getAttribute('data-video-source') && !media.querySelector('source')) {
                   const source = createTag('source', {
                     src: media.getAttribute('data-video-source'),
@@ -312,12 +314,16 @@ function createMediaContainers(el) {
                   });
                   media.appendChild(source);
                 }
-                if (!media.closest('.video-holder')) {
+                if (!videoHolder) {
                   const videoHolder = createTag('div', { class: 'video-holder' });
                   videoHolder.appendChild(media);
-                  cell.appendChild(videoHolder);
+                  const videoDiv = createTag('div', { class: 'descr-details-video' });
+                  videoDiv.appendChild(videoHolder);
+                  cell.appendChild(videoDiv);
                 } else {
-                  cell.appendChild(media);
+                  const videoDiv = createTag('div', { class: 'descr-details-video' });
+                  videoDiv.appendChild(videoHolder);
+                  cell.appendChild(videoDiv);
                 }
               } else if (media.classList.contains('video-holder')) {
                 const videosInHolder = media.querySelectorAll('video');
@@ -330,7 +336,9 @@ function createMediaContainers(el) {
                     video.appendChild(source);
                   }
                 });
-                cell.appendChild(media);
+                const videoDiv = createTag('div', { class: 'descr-details-video' });
+                videoDiv.appendChild(media);
+                cell.appendChild(videoDiv);
               } else if (media.matches('picture')) {
                 cell.appendChild(media);
               }
@@ -369,6 +377,9 @@ function createMediaContainers(el) {
       output.forEach(node => wrapperDiv.appendChild(node));
       table.replaceWith(wrapperDiv);
     });
+  });
+  el.querySelectorAll('video[data-video-source]').forEach(video => {
+    applyAccessibilityEvents(video);
   });
 }
 
