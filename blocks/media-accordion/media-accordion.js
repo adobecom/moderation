@@ -1,7 +1,8 @@
 import { LIBS } from '../../scripts/scripts.js';
+import { createMediaContainers } from '../example/example.js';
 
 const { createTag, getConfig } = await import(`${LIBS}/utils/utils.js`);
-const { decorateButtons, applyAccessibilityEvents } = await import(`${LIBS}/utils/decorate.js`);
+const { decorateButtons } = await import(`${LIBS}/utils/decorate.js`);
 const { processTrackingLabels } = await import(`${LIBS}/martech/attributes.js`);
 const { replaceKey } = await import(`${LIBS}/features/placeholders.js`);
 
@@ -9,20 +10,6 @@ const chevronIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
 const closeIcon = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="currentcolor" fill-rule="evenodd" clip-rule="evenodd" d="M13.6113 12L17.2647 8.34668C17.71 7.90186 17.71 7.18018 17.2647 6.73535C16.8193 6.29004 16.0986 6.29004 15.6533 6.73535L12 10.3887L8.34668 6.73535C7.90137 6.29004 7.18066 6.29004 6.73535 6.73535C6.29004 7.18017 6.29004 7.90185 6.73535 8.34668L10.3887 12L6.73535 15.6533C6.29004 16.0981 6.29004 16.8198 6.73535 17.2647C6.95801 17.4873 7.24951 17.5986 7.54101 17.5986C7.83251 17.5986 8.12402 17.4873 8.34667 17.2647L12 13.6113L15.6533 17.2647C15.876 17.4873 16.167 17.5986 16.459 17.5986C16.751 17.5986 17.042 17.4873 17.2646 17.2647C17.7099 16.8198 17.7099 16.0982 17.2646 15.6533L13.6113 12Z"/></svg>';
 const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [] };
 const mediaCollection = {};
-
-function processColoredText(input) {
-  if ((typeof input !== 'string' && !input?.innerHTML) || 
-      !/\[(red|blue|yellow|green)\]/.test(typeof input === 'string' ? input : input.innerHTML)) return input;
-  
-  const bbCode = (text) => text.replace(/\[(red|blue|yellow|green)\](.*?)\[\/\1\]/g, (_match, color, content) => {
-    return `<span class="text-${color}">${content}</span>`;
-  });
-  
-  if (typeof input === 'string') return bbCode(input);
-
-  input.innerHTML = bbCode(input.innerHTML);
-  return input;
-}
 
 function setSEO(questions) {
   faq.mainEntity.push(questions.map(({ name, text }) => (
@@ -221,166 +208,6 @@ async function createExpandAllContainer(accordionItems, isEditorial, mediaEl) {
   expandBtn.addEventListener('click', ({ currentTarget }) => toggleAll(currentTarget, 'expand'));
   collapseBtn.addEventListener('click', ({ currentTarget }) => toggleAll(currentTarget, 'collapse'));
   return container;
-}
-
-function createMediaContainers(el) {
-  el.querySelectorAll('.descr-details > div').forEach(container => {
-    let wrapper = null;
-    Array.from(container.childNodes).forEach(node => {
-      const isPic  = node.nodeType === 1 && node.matches('picture');
-      const hasPic = node.nodeType === 1 && node.querySelector(':scope > picture');
-      if (isPic || hasPic) {
-        if (!wrapper) {
-          wrapper = createTag('div', { class: 'descr-details-media-container' });
-          container.insertBefore(wrapper, node);
-        }
-        if (isPic) wrapper.appendChild(node);
-        else node.querySelectorAll('picture').forEach(pic => wrapper.appendChild(pic));
-      } else {
-        wrapper = null;
-      }
-    });
-
-    container.querySelectorAll('table').forEach(table => {
-      const rowsArr  = Array.from(table.querySelectorAll('tr'));
-      const headers  = Array.from(rowsArr[0].querySelectorAll('td,th'));
-      const bodyRows = rowsArr.slice(1);
-      const output   = [];
-      bodyRows.forEach(row => {
-        if (row.querySelector('picture, .video-holder, video')) {
-          const rowC = createTag('div', { class: 'descr-details-gray-row' });
-          row.querySelectorAll('td').forEach((td, i) => {
-            const txt   = headers[i]?.textContent || '';
-            let cls = '';
-            if (txt.includes('Y')) {
-              cls = 'checkmark';
-            } else if (txt.includes('X')) {
-              cls = 'crossmark';
-            } else if (txt.includes('?')) {
-              cls = 'questionmark';
-            } else if (txt.includes('!')) {
-              cls = 'exclammark';
-            } else if (txt.includes('i')) {
-              cls = 'infomark';
-            }
-            const hasMedia = td.querySelector('picture, .video-holder, video');
-            if (hasMedia) {
-            const paragraphs = Array.from(td.querySelectorAll('p'));
-            const directMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video'));
-            const paragraphsWithMedia = paragraphs.filter(p => 
-              p.querySelector('picture, .video-holder, video:not(.video-holder video)')
-            );
-            let layoutClass = 'descr-details-vertical';
-            if (paragraphsWithMedia.length > 1) {
-              const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some(p => {
-                const pictures = p.querySelectorAll('picture').length;
-                const videoHolders = p.querySelectorAll('.video-holder').length;
-                const standaloneVideos = p.querySelectorAll('video:not(.video-holder video)').length;
-                const totalMedia = pictures + videoHolders + standaloneVideos;
-                return totalMedia > 1;
-              });
-              layoutClass = hasMultipleMediaInAnyParagraph ? 'descr-details-grid' : 'descr-details-vertical';
-            } else if (paragraphsWithMedia.length === 1) {
-              const paragraph = paragraphsWithMedia[0];
-              const pictures = paragraph.querySelectorAll('picture').length;
-              const videoHolders = paragraph.querySelectorAll('.video-holder').length;
-              const standaloneVideos = paragraph.querySelectorAll('video:not(.video-holder video)').length;
-              const totalMedia = pictures + videoHolders + standaloneVideos;
-              layoutClass = totalMedia > 1 ? 'descr-details-horizontal' : 'descr-details-vertical';
-            } else if (directMedia.length > 1) {
-              layoutClass = 'descr-details-horizontal';
-            }
-            if (cls === 'questionmark') {
-              layoutClass = 'descr-details-horizontal';
-            } else if (cls === 'crossmark' && paragraphsWithMedia.length > 1) {
-              const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some(p => 
-                p.querySelectorAll('picture, .video-holder, video:not(.video-holder video)').length > 1
-              );
-              if (hasMultipleMediaInAnyParagraph) {
-                layoutClass = 'descr-details-grid';
-              }
-            }
-            const cell = createTag('div', {
-              class: `descr-details-gray-container${cls ? ' ' + cls : ''} ${layoutClass}`
-            });
-            const allMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video, :scope > p > picture, :scope > p > .video-holder, :scope > p > video'));
-            allMedia.forEach(media => {
-              if (media.tagName === 'VIDEO') {
-                const videoHolder = media.closest('.video-holder');
-                if (media.getAttribute('data-video-source') && !media.querySelector('source')) {
-                  const source = createTag('source', {
-                    src: media.getAttribute('data-video-source'),
-                    type: 'video/mp4'
-                  });
-                  media.appendChild(source);
-                }
-                if (!videoHolder) {
-                  const videoHolder = createTag('div', { class: 'video-holder' });
-                  videoHolder.appendChild(media);
-                  const videoDiv = createTag('div', { class: 'descr-details-video' });
-                  videoDiv.appendChild(videoHolder);
-                  cell.appendChild(videoDiv);
-                } else {
-                  const videoDiv = createTag('div', { class: 'descr-details-video' });
-                  videoDiv.appendChild(videoHolder);
-                  cell.appendChild(videoDiv);
-                }
-              } else if (media.classList.contains('video-holder')) {
-                const videosInHolder = media.querySelectorAll('video');
-                videosInHolder.forEach(video => {
-                  if (video.getAttribute('data-video-source') && !video.querySelector('source')) {
-                    const source = createTag('source', {
-                      src: video.getAttribute('data-video-source'),
-                      type: 'video/mp4'
-                    });
-                    video.appendChild(source);
-                  }
-                });
-                const videoDiv = createTag('div', { class: 'descr-details-video' });
-                videoDiv.appendChild(media);
-                cell.appendChild(videoDiv);
-              } else if (media.matches('picture')) {
-                cell.appendChild(media);
-              }
-            });
-            const textNodes = Array.from(td.childNodes).filter(node => 
-              node.nodeType === Node.TEXT_NODE && node.textContent.trim()
-            );
-            const textParagraphs = Array.from(td.querySelectorAll('p')).filter(p => 
-              p.textContent.trim() && !p.querySelector('picture, .video-holder, video')
-            );
-            textNodes.forEach(textNode => {
-              if (textNode.textContent.trim()) cell.appendChild(createTag('p', {}, textNode.textContent));
-            });
-            textParagraphs.forEach(p => cell.appendChild(p.cloneNode(true)));
-            rowC.appendChild(cell);
-            } else {
-            const cell = createTag('div', { class: `descr-details-text-only${cls ? ' ' + cls : ''}` });
-            while (td.firstChild) cell.appendChild(td.firstChild);
-            rowC.appendChild(cell);
-            }
-          });
-          processColoredText(rowC);
-          output.push(rowC);
-        } else {
-          const capC = createTag('div', { class: 'descr-details-gray-caption' });
-          row.querySelectorAll('td').forEach(td => {
-            const c = createTag('div', { class: 'descr-details-gray-caption-cell' });
-            while (td.firstChild) c.appendChild(td.firstChild);
-            capC.appendChild(c);
-          });
-          processColoredText(capC);
-          output.push(capC);
-        }
-      });
-      const wrapperDiv = createTag('div', { class: 'checkmark-crossmarks' });
-      output.forEach(node => wrapperDiv.appendChild(node));
-      table.replaceWith(wrapperDiv);
-    });
-  });
-  el.querySelectorAll('video[data-video-source]').forEach(video => {
-    applyAccessibilityEvents(video);
-  });
 }
 
 export default async function init(el) {
