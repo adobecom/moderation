@@ -36,7 +36,6 @@ export function createMediaContainers(el) {
         if (isMedia) {
           wrapper.appendChild(node);
         } else {
-          // Move child media elements while keeping their structure intact
           if (hasPic) node.querySelectorAll(':scope > picture').forEach((pic) => wrapper.appendChild(pic));
           if (hasVideoHolder) node.querySelectorAll(':scope > .video-holder').forEach((vh) => wrapper.appendChild(vh));
           if (hasVideo) node.querySelectorAll(':scope > video').forEach((v) => wrapper.appendChild(v));
@@ -70,78 +69,68 @@ export function createMediaContainers(el) {
             }
             const hasMedia = td.querySelector('picture, .video-holder, video');
             if (hasMedia) {
-              const paragraphs = Array.from(td.querySelectorAll('p'));
-              const directMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video'));
-              const paragraphsWithMedia = paragraphs.filter((p) => p.querySelector('picture, .video-holder, video:not(.video-holder video)'));
-              let layoutClass = 'descr-details-vertical';
-              if (paragraphsWithMedia.length > 1) {
-                const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some((p) => {
-                  const pictures = p.querySelectorAll('picture').length;
-                  const videoHolders = p.querySelectorAll('.video-holder').length;
-                  const standaloneVideos = p.querySelectorAll('video:not(.video-holder video)').length;
-                  const totalMedia = pictures + videoHolders + standaloneVideos;
-                  return totalMedia > 1;
-                });
-                layoutClass = hasMultipleMediaInAnyParagraph ? 'descr-details-grid' : 'descr-details-vertical';
-              } else if (paragraphsWithMedia.length === 1) {
-                const paragraph = paragraphsWithMedia[0];
-                const pictures = paragraph.querySelectorAll('picture').length;
-                const videoHolders = paragraph.querySelectorAll('.video-holder').length;
-                const standaloneVideos = paragraph.querySelectorAll('video:not(.video-holder video)').length;
-                const totalMedia = pictures + videoHolders + standaloneVideos;
-                layoutClass = totalMedia > 1 ? 'descr-details-horizontal' : 'descr-details-vertical';
-              } else if (directMedia.length > 1) {
-                layoutClass = 'descr-details-horizontal';
-              }
-              if (cls === 'questionmark') {
-                layoutClass = 'descr-details-horizontal';
-              } else if (cls === 'crossmark' && paragraphsWithMedia.length > 1) {
-                const hasMultipleMediaInAnyParagraph = paragraphsWithMedia.some((p) => p.querySelectorAll('picture, .video-holder, video:not(.video-holder video)').length > 1);
-                if (hasMultipleMediaInAnyParagraph) {
-                  layoutClass = 'descr-details-grid';
-                }
-              }
               const cell = createTag('div', {
-                class: `descr-details-gray-container${cls ? ` ${cls}` : ''} ${layoutClass}`,
+                class: `descr-details-gray-container${cls ? ` ${cls}` : ''}`,
               });
-              const allMedia = Array.from(td.querySelectorAll(':scope > picture, :scope > .video-holder, :scope > video, :scope > p > picture, :scope > p > .video-holder, :scope > p > video'));
-              allMedia.forEach((media) => {
+              
+              const processMedia = (media, row) => {
                 if (media.tagName === 'VIDEO') {
                   const existingVideoHolder = media.closest('.video-holder');
                   if (media.getAttribute('data-video-source') && !media.querySelector('source')) {
-                    const source = createTag('source', {
+                    media.appendChild(createTag('source', {
                       src: media.getAttribute('data-video-source'),
                       type: 'video/mp4',
-                    });
-                    media.appendChild(source);
+                    }));
                   }
                   if (!existingVideoHolder) {
                     const videoHolder = createTag('div', { class: 'video-holder' });
                     videoHolder.appendChild(media);
                     const videoDiv = createTag('div', { class: 'descr-details-video' });
                     videoDiv.appendChild(videoHolder);
-                    cell.appendChild(videoDiv);
+                    row.appendChild(videoDiv);
                   } else {
                     const videoDiv = createTag('div', { class: 'descr-details-video' });
                     videoDiv.appendChild(existingVideoHolder);
-                    cell.appendChild(videoDiv);
+                    row.appendChild(videoDiv);
                   }
                 } else if (media.classList.contains('video-holder')) {
-                  const videosInHolder = media.querySelectorAll('video');
-                  videosInHolder.forEach((video) => {
-                    if (video.getAttribute('data-video-source') && !video.querySelector('source')) {
-                      const source = createTag('source', {
-                        src: video.getAttribute('data-video-source'),
+                  media.querySelectorAll('video').forEach((video) => {
+                    const videoSource = video.getAttribute('data-video-source');
+                    if (videoSource && !video.querySelector('source')) {
+                      video.appendChild(createTag('source', {
+                        src: videoSource,
                         type: 'video/mp4',
-                      });
-                      video.appendChild(source);
+                      }));
                     }
                   });
                   const videoDiv = createTag('div', { class: 'descr-details-video' });
                   videoDiv.appendChild(media);
-                  cell.appendChild(videoDiv);
+                  row.appendChild(videoDiv);
                 } else if (media.matches('picture')) {
-                  cell.appendChild(media);
+                  row.appendChild(media);
+                }
+              };
+
+              const allChildren = Array.from(td.children);
+              let currentRow = null;
+              let lastWasParagraph = false;
+
+              allChildren.forEach((child) => {
+                if (child.tagName === 'P') {
+                  const mediaInParagraph = Array.from(child.querySelectorAll('picture, .video-holder, video:not(.video-holder video)'));
+                  if (mediaInParagraph.length) {
+                    currentRow = createTag('div', { class: 'example-media-row' });
+                    mediaInParagraph.forEach((media) => processMedia(media, currentRow));
+                    cell.appendChild(currentRow);
+                    lastWasParagraph = true;
+                  }
+                } else if (child.matches('picture, .video-holder, video')) {
+                  if (!currentRow || lastWasParagraph) {
+                    currentRow = createTag('div', { class: 'example-media-row' });
+                    cell.appendChild(currentRow);
+                    lastWasParagraph = false;
+                  }
+                  processMedia(child, currentRow);
                 }
               });
               const textNodes = Array.from(td.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
@@ -175,9 +164,7 @@ export function createMediaContainers(el) {
       table.replaceWith(wrapperDiv);
     });
   });
-  el.querySelectorAll('video[data-video-source]').forEach((video) => {
-    applyAccessibilityEvents(video);
-  });
+  el.querySelectorAll('video[data-video-source]').forEach(applyAccessibilityEvents);
 }
 
 function createItem(container, id, content, num) {
@@ -198,17 +185,15 @@ function getUniqueId(el) {
 
 export default async function init(el) {
   const id = getUniqueId(el);
-  const exampleContainer = createTag('div', { class: 'example-list', id: `example-${id}`, role: 'presentation' });
+  const exampleContainer = createTag('div', { 
+    class: 'example-list', 
+    id: `example-${id}`, 
+    role: 'presentation' 
+  });
   decorateButtons(el);
 
-  const contents = el.querySelectorAll(':scope > div');
-  [...contents].forEach(
-    (content, idx) => createItem(
-      exampleContainer,
-      id,
-      content,
-      idx + 1,
-    ),
+  el.querySelectorAll(':scope > div').forEach((content, idx) => 
+    createItem(exampleContainer, id, content, idx + 1)
   );
 
   el.innerHTML = '';
