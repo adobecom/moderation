@@ -55,6 +55,7 @@ export function createMediaContainers(el) {
           const rowC = createTag('div', { class: 'descr-details-gray-row' });
           row.querySelectorAll('td').forEach((td, i) => {
             const txt = headers[i]?.textContent || '';
+            const isTall = /\(?tall\)?/i.test(txt);
             let cls = '';
             if (txt.includes('Y')) {
               cls = 'checkmark';
@@ -67,6 +68,7 @@ export function createMediaContainers(el) {
             } else if (txt.includes('i')) {
               cls = 'infomark';
             }
+            if (isTall) cls += ' tall-example';
             const hasMedia = td.querySelector('picture, .video-holder, video');
             if (hasMedia) {
               const cell = createTag('div', {
