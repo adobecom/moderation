@@ -218,3 +218,16 @@ main .descr-details .video-holder {
 .descr-details .text-blue { color: #31A8FF; }
 .descr-details .text-yellow { color: #FFC857; }
 .descr-details .text-green { color: #15A46E; }
+
+.descr-details-gray-container.tall-example picture img,
+.descr-details-gray-container.tall-example video,
+.descr-details-gray-container.tall-example .example-media-row picture img,
+.descr-details-gray-container.tall-example .example-media-row .descr-details-video video {
+  height: auto;
+  width: 100%;
+  max-height: 1200px;
+}
+
+.descr-details-gray-container.tall-example .example-media-row .descr-details-video .video-holder {
+  max-height: 1200px;
+}
