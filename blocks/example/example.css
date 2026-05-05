@@ -28,11 +28,11 @@
   margin-top: 0;
 }
 
-.example .text-acceptable {
+.descr-details .text-acceptable {
   color: #15A46E;
 }
 
-.example .text-not-acceptable {
+.descr-details .text-not-acceptable {
   color: #EA3829;
 }
 
