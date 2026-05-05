@@ -210,6 +210,22 @@ async function createExpandAllContainer(accordionItems, isEditorial, mediaEl) {
   return container;
 }
 
+/**
+ * Color code all the text where necessary.
+ *
+ * @param el the block's content.
+ */
+function colorCodeAcceptableText(el) {
+  el.querySelectorAll('strong').forEach((strong) => {
+    if (strong.textContent.toLowerCase() === 'acceptable') {
+      strong.classList.add('text-acceptable');
+    } else if (strong.textContent.toLowerCase() === 'not acceptable') {
+      strong.textContent = 'not acceptable';
+      strong.classList.add('text-not-acceptable');
+    }
+  });
+}
+
 export default async function init(el) {
   const id = getUniqueId(el);
   const accordion = createTag('div', { class: 'descr-list accordion', id: `accordion-${id}`, role: 'presentation' });
@@ -255,4 +271,5 @@ export default async function init(el) {
     el.prepend(expandAllContainer);
   }
   createMediaContainers(el);
+  colorCodeAcceptableText(el);
 }

@@ -28,6 +28,14 @@
   margin-top: 0;
 }
 
+.example .text-acceptable {
+  color: #15A46E;
+}
+
+.example .text-not-acceptable {
+  color: #EA3829;
+}
+
 @media screen and (max-width: 1199px) {
   .descr-details .descr-details-media-container {
     align-items: flex-start;

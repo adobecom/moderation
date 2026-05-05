@@ -247,6 +247,14 @@ div.media-p {
   }
 }
 
+.media-accordion .text-acceptable {
+  color: #15A46E;
+}
+
+.media-accordion .text-not-acceptable {
+  color: #EA3829;
+}
+
 @media screen and (min-width: 1200px) {
   .editorial {
     display: flex;

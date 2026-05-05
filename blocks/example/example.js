@@ -74,7 +74,7 @@ export function createMediaContainers(el) {
               const cell = createTag('div', {
                 class: `descr-details-gray-container${cls ? ` ${cls}` : ''}`,
               });
-              
+
               const processMedia = (media, row) => {
                 if (media.tagName === 'VIDEO') {
                   const existingVideoHolder = media.closest('.video-holder');
@@ -185,16 +185,32 @@ function getUniqueId(el) {
   return [...examples].indexOf(el) + 1;
 }
 
+/**
+ * Color code all the text where necessary.
+ *
+ * @param el the block's content.
+ */
+function colorCodeAcceptableText(el) {
+  el.querySelectorAll('strong').forEach((strong) => {
+    if (strong.textContent.toLowerCase() === 'acceptable') {
+      strong.classList.add('text-acceptable');
+    } else if (strong.textContent.toLowerCase() === 'not acceptable') {
+      strong.textContent = 'not acceptable';
+      strong.classList.add('text-not-acceptable');
+    }
+  });
+}
+
 export default async function init(el) {
   const id = getUniqueId(el);
-  const exampleContainer = createTag('div', { 
-    class: 'example-list', 
-    id: `example-${id}`, 
-    role: 'presentation' 
+  const exampleContainer = createTag('div', {
+    class: 'example-list',
+    id: `example-${id}`,
+    role: 'presentation'
   });
   decorateButtons(el);
 
-  el.querySelectorAll(':scope > div').forEach((content, idx) => 
+  el.querySelectorAll(':scope > div').forEach((content, idx) =>
     createItem(exampleContainer, id, content, idx + 1)
   );
 
@@ -206,4 +222,5 @@ export default async function init(el) {
   exampleContainer.classList.add('foreground');
   el.append(exampleContainer);
   createMediaContainers(el);
+  colorCodeAcceptableText(el);
 }
